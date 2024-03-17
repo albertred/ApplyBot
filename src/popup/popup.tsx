@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-import { Box, Grid, InputBase, IconButton, Paper, Button } from '@material-ui/core'
+import {
+  Box,
+  Grid,
+  InputBase,
+  IconButton,
+  Paper,
+  Button,
+} from '@material-ui/core'
 import {
   Add as AddIcon,
   PictureInPicture as PictureInPictureIcon,
@@ -56,6 +63,12 @@ const App: React.FC<{}> = () => {
     })
   }
 
+  const handleCaptureButtonClick = () => {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, Messages.CAPTURE);
+    });
+  }
+
   const handleOverlayButtonClick = () => {
     chrome.tabs.query(
       {
@@ -76,11 +89,15 @@ const App: React.FC<{}> = () => {
 
   return (
     <Box mx="8px" my="16px">
-      <Button variant="contained" onClick={
-        () => {
-          alert('clicked')
-        }
-      }>Capture </Button>
+      <Button
+        variant="contained"
+        style={{
+          marginBottom: '1rem'
+        }}
+        onClick={handleCaptureButtonClick}
+      >
+        Capture
+      </Button>
 
       <Grid container justify="space-evenly">
         <Grid item>
@@ -135,3 +152,5 @@ const App: React.FC<{}> = () => {
 const root = document.createElement('div')
 document.body.appendChild(root)
 ReactDOM.render(<App />, root)
+
+console.log('>>> pupup is shown!')

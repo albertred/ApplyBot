@@ -50,16 +50,70 @@ const App: React.FC<{}> = () => {
   )
 }
 
+const isElementVisible = (element: Element): boolean => {
+  const style = window.getComputedStyle(element)
+  return style.display !== 'none' && style.visibility !== 'hidden'
+}
+
+const getVisibleInputValues = () : HTMLInputElement[] => {
+  const inputs = document.querySelectorAll('input')
+  const visibleInputs = Array.from(inputs).filter(isElementVisible)
+  const elements = visibleInputs.map(input => input as HTMLInputElement)
+  return elements
+}
+
 const root = document.createElement('div')
 document.body.appendChild(root)
 ReactDOM.render(<App />, root)
 
 console.log('>>> Running contentScript.tsx...')
 
+const levenshteinDistance = (s1, s2) => {
+  // Create an array to save distances
+  const distances = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
+
+  // Fill the first row and column
+  for (let i = 0; i <= s1.length; i += 1) distances[0][i] = i;
+  for (let j = 0; j <= s2.length; j += 1) distances[j][0] = j;
+
+  // Calculate distances
+  for (let j = 1; j <= s2.length; j += 1) {
+    for (let i = 1; i <= s1.length; i += 1) {
+      const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
+      distances[j][i] = Math.min(
+        distances[j][i - 1] + 1, // Deletion
+        distances[j - 1][i] + 1, // Insertion
+        distances[j - 1][i - 1] + indicator, // Substitution
+      );
+    }
+  }
+
+  // The distance between the two strings is in the bottom-right corner
+  return distances[s2.length][s1.length];
+}
+
+const distance = (s1: string, s2: string) => {
+  const e1 = s1 ? s1.toUpperCase().trim() : ''
+  const e2 = s2 ? s2.toUpperCase().trim() : ''
+  const b = s1.length + s2.length
+  return b ? levenshteinDistance(e1, e2) / b : 0
+}
+
+const captureFields = () => {
+  console.log('>>> captureFields...')
+  getVisibleInputValues().forEach(element => {
+    console.log('>>> ', element.value)
+  })
+}
+
 const handleMessages = (msg: Messages) => {
+  console.log('>>> message received in contentScript: ', msg)
   if (msg === Messages.CAPTURE) {
-    console.log('>>> Running CAPTURE...')
+    captureFields()
   }
 }
+
+console.log('>>>> test1', distance('Name', 'Name (optional)'))
+console.log('>>>> test1', distance('Name', 'Sex'))
 
 chrome.runtime.onMessage.addListener(handleMessages)
