@@ -68,6 +68,19 @@ ReactDOM.render(<App />, root)
 
 console.log('>>> Running contentScript.tsx...')
 
+
+
+const script = document.createElement('script');
+script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.0.0-rc.7/html2canvas.min.js';
+script.onload = function() {
+  console.log('>>> html2canvas is loaded.')
+};
+document.head.appendChild(script);
+
+
+
+
+
 const levenshteinDistance = (s1, s2) => {
   // Create an array to save distances
   const distances = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
@@ -93,10 +106,16 @@ const levenshteinDistance = (s1, s2) => {
 }
 
 const distance = (s1: string, s2: string) => {
+  console.log('>>> distance:', s1, s2)
   const e1 = s1 ? s1.toUpperCase().trim() : ''
   const e2 = s2 ? s2.toUpperCase().trim() : ''
-  const b = s1.length + s2.length
-  return b ? levenshteinDistance(e1, e2) / b : 0
+  const b = e1.length + e2.length
+  console.log('>>> b=', b)
+  const d = levenshteinDistance(e1, e2)
+  console.log('>>> d=', d)
+  const rtn = b ? (levenshteinDistance(e1, e2) / b) : 0
+  console.log('>>> rtn=', rtn)
+  return rtn
 }
 
 const captureFields = () => {
@@ -114,6 +133,6 @@ const handleMessages = (msg: Messages) => {
 }
 
 console.log('>>>> test1', distance('Name', 'Name (optional)'))
-console.log('>>>> test1', distance('Name', 'Sex'))
+//console.log('>>>> test1', distance('Name', 'Sex'))
 
 chrome.runtime.onMessage.addListener(handleMessages)
